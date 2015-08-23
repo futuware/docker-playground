@@ -1,0 +1,9 @@
+[deploy]
+deploy.foo
+
+[app]
+app1.foo
+
+[vagrant]
+deploy.foo
+app1.foo

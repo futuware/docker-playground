@@ -1,0 +1,31 @@
+---
+- hosts: deploy
+
+  vars:
+#    workdir: /opt/kapellmeister
+#    repo_url: file:///vagrant
+#    repo_branch: master
+    workdir: /vagrant
+    version: "{{ lookup('pipe', 'date +%Y.%m.%d.%H.%M') }}"
+
+  tasks:
+#    - name: Update code
+#      git: repo={{ repo_url }} dest={{ workdir }} force=true version={{ repo_branch }}
+
+    - name: Build base docker image
+      shell: docker build -t base -f docker/base . chdir={{ workdir }}
+
+    - name: Build builder image
+      shell: docker build -t builder -f docker/build . chdir={{ workdir }}
+
+    - name: Build application with builder image
+      shell:
+        chdir={{ workdir }}
+        docker run --rm -v $(pwd):/application -v $(pwd)/wheelhouse:/wheelhouse builder
+
+    - name: Build application image
+      shell:
+        chdir={{ workdir }}
+        docker build -t {{ version }} -f docker/run .;
+
+    - debug: msg="Finished building version {{ version }}"

@@ -1,0 +1,31 @@
+---
+- hosts: deploy
+
+  vars:
+    workdir: /opt/kapellmeister
+
+  roles:
+    - role: docker.ubuntu
+      docker_group_members:
+        - "{{ ansible_ssh_user }}"
+      sudo: true
+
+  tasks:
+    - name: Ensure docker service is running
+      service: name=docker state=started enabled=yes
+
+    - name: Ensure git is installed
+      apt: name=git state=present
+      sudo: true
+
+    - name: Ensure workdir exists
+      file: path={{ workdir }} state=directory owner={{ ansible_ssh_user }}
+      sudo: true
+
+    - name: Add ansible repo
+      apt_repository: repo='ppa:ansible/ansible'
+      sudo: true
+
+    - name: Install ansible
+      apt: name=ansible state=present
+      sudo: true

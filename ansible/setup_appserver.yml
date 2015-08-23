@@ -1,0 +1,12 @@
+---
+- hosts: app
+
+  roles:
+    - role: docker.ubuntu
+      docker_group_members:
+        - "{{ ansible_ssh_user }}"
+      sudo: true
+
+  tasks:
+    - name: Ensure docker service is running
+      service: name=docker state=started enabled=yes

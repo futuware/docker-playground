@@ -1,0 +1,12 @@
+FROM ubuntu:precise
+
+RUN apt-get update
+
+RUN apt-get install -qyy \
+    -o APT::Install-Recommends=false \
+    -o APT::Install-Suggests=false \
+    python-virtualenv
+
+RUN virtualenv /appenv
+
+RUN . /appenv/bin/activate; pip install pip==7.1.2; pip install --upgrade distribute

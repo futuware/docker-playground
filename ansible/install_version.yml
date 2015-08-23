@@ -1,0 +1,40 @@
+---
+- hosts: app
+  vars:
+    versions_dir: "/opt/kapellmeister/images"
+    filename: "{{ versions_dir }}/{{ version }}.tar"
+
+  tasks:
+    - debug: msg="Installing {{ version }} on app servers"
+
+    - name: Ensure version dir exists locally
+      local_action:
+        file path={{ versions_dir }} state=directory
+
+    - name: Check if image archive exists locally
+      local_action:
+        stat path={{ filename }}
+      register: version_archive
+
+    - name: Exporting version image
+      local_action: shell docker save -o {{ filename }} {{ version }}
+      when: version_archive.stat.exists == False
+
+    - name: Ensure version dir exists remotely
+      file: path={{ versions_dir }} state=directory owner={{ ansible_ssh_user }}
+      sudo: true
+
+    - name: Checking if image exists remotely
+      stat: path={{ filename }}
+      register: version_archive
+
+    - name: Copying image to remote host
+      copy: src={{ filename }} dest={{ filename }}
+      when: version_archive.stat.exists == False
+
+    - name: Importing docker image
+      shell: docker load -i {{ filename }}
+
+    - name: Run image
+      shell: docker run -d -it -p 8080:8080 {{ version }}
+
