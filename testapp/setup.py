@@ -8,10 +8,6 @@ setup(
     packages=['testapp'],
     install_requires=[
         "pyramid==1.5.7",
+        "gunicorn==19.3.0",
     ],
-    entry_points={
-        'console_scripts': [
-            'run-the-app = testapp.server:main'
-        ]
-    },
 )

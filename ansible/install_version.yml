@@ -1,7 +1,9 @@
 ---
 - hosts: app
   vars:
-    versions_dir: "/opt/kapellmeister/images"
+    app_dir: /opt/futurico/blog
+    sockets_dir: "{{ app_dir }}/sockets"
+    versions_dir: "{{ app_dir }}/images"
     filename: "{{ versions_dir }}/{{ version }}.tar"
 
   tasks:
@@ -9,7 +11,8 @@
 
     - name: Ensure version dir exists locally
       local_action:
-        file path={{ versions_dir }} state=directory
+        file path={{ versions_dir }} state=directory owner={{ ansible_ssh_user }}
+      sudo: true
 
     - name: Check if image archive exists locally
       local_action:
@@ -36,5 +39,5 @@
       shell: docker load -i {{ filename }}
 
     - name: Run image
-      shell: docker run -d -it -p 8080:8080 {{ version }}
+      shell: docker run -d -t -v {{ sockets_dir }}:/sockets -i {{ version }}
 

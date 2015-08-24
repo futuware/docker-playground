@@ -2,7 +2,4 @@ FROM base
 
 ADD wheelhouse /wheelhouse
 RUN . /appenv/bin/activate; pip install --no-index -f wheelhouse testapp
-
-EXPOSE 8081
-
-CMD . /appenv/bin/activate; run-the-app
+CMD . /appenv/bin/activate; gunicorn "testapp.server:make_app()" --bind unix://tmp/testapp.sock

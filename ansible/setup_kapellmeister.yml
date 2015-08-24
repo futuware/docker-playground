@@ -2,7 +2,7 @@
 - hosts: deploy
 
   vars:
-    workdir: /opt/kapellmeister
+    workdir: /opt/futurico/deploy
 
   roles:
     - role: docker.ubuntu
