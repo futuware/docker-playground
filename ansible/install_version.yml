@@ -1,43 +1,54 @@
 ---
 - hosts: app
   vars:
-    app_dir: /opt/futurico/blog
-    sockets_dir: "{{ app_dir }}/sockets"
-    versions_dir: "{{ app_dir }}/images"
-    filename: "{{ versions_dir }}/{{ version }}.tar"
+    local_versions_dir: /opt/futurico/deploy/versions
+    local_filename: "{{ local_versions_dir }}/{{ version }}.tar"
+    remote_app_dir: /opt/futurico/blog
+    remote_version_dir: "{{ remote_app_dir }}/{{ version }}"
+    remote_sockets_dir: "{{ remote_version_dir }}/run"
+    remote_logs_dir: "{{ remote_version_dir }}/logs"
+    remote_filename: "{{ remote_version_dir }}/{{ version }}.tar"
+    domain_name: app1.foo
 
   tasks:
     - debug: msg="Installing {{ version }} on app servers"
 
     - name: Ensure version dir exists locally
       local_action:
-        file path={{ versions_dir }} state=directory owner={{ ansible_ssh_user }}
+        file path={{ local_versions_dir }} state=directory owner={{ ansible_ssh_user }}
       sudo: true
 
     - name: Check if image archive exists locally
       local_action:
-        stat path={{ filename }}
+        stat path={{ local_filename }}
       register: version_archive
 
     - name: Exporting version image
-      local_action: shell docker save -o {{ filename }} {{ version }}
+      local_action: shell docker save -o {{ local_filename }} {{ version }}
       when: version_archive.stat.exists == False
 
     - name: Ensure version dir exists remotely
-      file: path={{ versions_dir }} state=directory owner={{ ansible_ssh_user }}
+      file: path={{ remote_version_dir }} state=directory owner={{ ansible_ssh_user }}
       sudo: true
 
     - name: Checking if image exists remotely
-      stat: path={{ filename }}
+      stat: path={{ remote_filename }}
       register: version_archive
 
     - name: Copying image to remote host
-      copy: src={{ filename }} dest={{ filename }}
+      copy: src={{ local_filename }} dest={{ remote_filename }}
       when: version_archive.stat.exists == False
 
     - name: Importing docker image
-      shell: docker load -i {{ filename }}
+      shell: docker load -i {{ remote_filename }}
 
     - name: Run image
-      shell: docker run -d -t -v {{ sockets_dir }}:/sockets -i {{ version }}
+      shell: docker run -d -t -v {{ remote_sockets_dir }}:/run -v {{ remote_logs_dir }}:/logs -i {{ version }}
 
+    - name: Setup nginx config
+      template: src=templates/nginx-version.conf.j2 dest=/etc/nginx/sites-enabled/{{ version }}.conf
+      sudo: true
+
+    - name: Reload nginx
+      service: name=nginx state=reloaded
+      sudo: true

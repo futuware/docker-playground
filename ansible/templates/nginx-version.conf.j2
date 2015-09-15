@@ -1,68 +1,39 @@
-{% set version_domain_name='%s.%s' % (version, domain_name) %}
-{% set appdir='/opt/futurico/blog' %}
+{% set appdir='/opt/futurico/blog/{}'.format(version) %}
+{% set logdir='{}/logs'.format(appdir) %}
+{% set socket_path='{}/run/app.sock'.format(appdir) %}
 {% set upstream='application-%s' % version %}
 
 upstream {{ upstream }} {
-    server unix:{{ appdir }}/sockets/{{ version }}.sock;
+    server unix:{{ socket_path }};
 }
 
 server {
-    listen  80;
-    server_name www.{{ version_domain_name }};
-    rewrite ^ http://{{ version_domain_name }}$uri permanent;
-}
-
-server {
-    listen  80;
-    server_name  {{ version_domain_name }} *.{{ version_domain_name }};
-    access_log   /var/log/nginx/futurico-{{ version }}-access.log main;
-    access_log   /var/log/mongonginx/futurico-{{ version }}-access.log;
-    error_log    /var/log/nginx/futurico-{{ version }}-error.log  warn;
+    listen 80;
+    server_name  {{ version }}.{{ domain_name }} ~^{{ version }}\.(.+)\.{{ domain_name }}$;
+    access_log   {{ logdir }}/access.log;
+    error_log    {{ logdir }}/error.log  debug;
+    rewrite_log on;
 
     subs_filter_types text/css text/xml;
     sub_filter_once on;
 
     set $fake_http_host $http_host;
-    set $releasedate "";
-    if ($http_host ~ "^(.+)\.(\d{4})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})\.{{ domain_name }}$") {
+    set $versionprefix "";
+    if ($http_host ~ "^{{ version }}\.(.+)\.{{ domain_name }}$") {
         set $fake_http_host $1.{{ domain_name }};
-        set $releasedate "$2.$3.$4.$5.$6.";
+        set $versionprefix "{{ version }}.";
     }
-    if ($http_host ~ "^(\d{4})\.(\d{2})\.(\d{2})\.(\d{2})\.(\d{2})\.{{ domain_name }}$") {
+    if ($http_host ~ "^{{ version }}\.{{ domain_name }}$") {
         set $fake_http_host {{ domain_name }};
-        set $releasedate "$1.$2.$3.$4.$5.";
-    }
-
-    root {{ appdir }}/docroot/;
-    recursive_error_pages on;
-    proxy_intercept_errors on;
-    proxy_ignore_headers "Cache-Control";
-    error_page 500 502 503 504 /50x.html;
-    client_max_body_size 25m;
-    proxy_buffer_size 8k;
-    proxy_buffering off;
-
-    add_header Cache-Control "no-transform";
-
-    location /static/ {
-        alias {{ appdir }}/docroot/;
-        access_log off;
-        gzip on;
-        gzip_types text/css application/x-javascript;
-        expires 30d;
-        if ($query_string) {
-            expires 30d;
-            break;
-        }
+        set $versionprefix "{{ version }}.";
     }
 
     location / {
         proxy_pass http://{{ upstream }};
-        subs_filter "//(.+)\.{{ domain_name }}" "//$1.${releasedate}{{ domain_name }}" gi;
-        subs_filter "//{{ domain_name }}" "//${releasedate}{{ domain_name }}" gi;
+        subs_filter "//(.+)\.{{ domain_name }}" "//${versionprefix}$1.{{ domain_name }}" gi;
+        subs_filter "//{{ domain_name }}" "//${versionprefix}{{ domain_name }}" gi;
         proxy_set_header Host $fake_http_host;
         proxy_intercept_errors on;
         proxy_set_header X-Forwarded-for $http_x_forwarded_for;
     }
-
 }

@@ -10,3 +10,16 @@
   tasks:
     - name: Ensure docker service is running
       service: name=docker state=started enabled=yes
+      sudo: true
+
+    - name: Ensure nginx repo is added
+      apt_repository: repo=ppa:nginx/stable state=present update_cache=yes
+      sudo: true
+
+    - name: Ensure nginx is installed
+      apt: name=nginx=1.8.0-1+precise1 state=present
+      sudo: true
+
+    - name: Ensure nginx is running and enabled
+      service: name=nginx state=running enabled=true
+      sudo: true
