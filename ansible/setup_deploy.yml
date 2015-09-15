@@ -3,6 +3,7 @@
 
   vars:
     workdir: /opt/futurico/deploy
+    deploy_repo: https://github.com/futuware/kapellmeister.git
 
   roles:
     - role: docker.ubuntu
@@ -18,10 +19,6 @@
       apt: name=git state=present
       sudo: true
 
-    - name: Ensure workdir exists
-      file: path={{ workdir }} state=directory owner={{ ansible_ssh_user }}
-      sudo: true
-
     - name: Add ansible repo
       apt_repository: repo='ppa:ansible/ansible'
       sudo: true
@@ -29,3 +26,10 @@
     - name: Install ansible
       apt: name=ansible state=present
       sudo: true
+
+    - name: Ensure workdir exists
+      file: path={{ workdir }} state=directory owner={{ ansible_ssh_user }}
+      sudo: true
+
+#    - name: Ensure deploy code is present and up-to-date
+#      git: repo={{ deploy_repo }} dest={{ workdir }} update=true
