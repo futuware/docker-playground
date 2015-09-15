@@ -5,7 +5,14 @@ from pyramid.response import Response
 
 
 def index_view(request):
-    return Response('Hello world!')
+    dom_parts = request.domain.split('.')
+    if len(dom_parts) == 2:
+        subdomain = None
+    elif len(dom_parts) == 3:
+        subdomain = dom_parts[0]
+    else:
+        raise Exception
+    return Response('Hello from {}'.format('base domain' if subdomain is None else subdomain))
 
 
 def make_app():
