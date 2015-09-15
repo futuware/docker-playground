@@ -54,3 +54,34 @@ to use our real servers when things will become real.
 
 - Our test app which tries to mimic our real apps. It resides in `testapp`
 directory, and consists of `testapp` package and `setup.py` file to install it.
+
+
+---
+
+Instructions:
+
+1. First, bring up testing VMs:
+
+        $ vagrant up
+1. Then, on your local machine, setup deploy server:
+
+        $ make setup_deploy
+1. And appserver
+
+        $ make setup_appserver
+1. Then go to deploy server and cd to a project root
+
+        $ vagrant ssh deploy
+        vagrant@deploy:~$ cd /vagrant/
+1. Now, from deploy machine, start version build
+
+        $ vagrant@deploy:/vagrant$ make local_build
+At the end, you will get version timestamp, like this
+
+        "msg": "Finished building version 2015.09.15.20.56"
+1. After that, you can install version:
+
+        make install version=2015.09.15.20.56
+1. When version is installed, go to `http://2015.09.15.20.56.app1.foo` and see
+`Hello from base domain` or to `http://2015.09.15.20.56.foo.app1.foo/` and see
+`Hello from foo`
