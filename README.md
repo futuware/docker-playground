@@ -69,19 +69,16 @@ Instructions:
 1. And appserver
 
         $ make setup_appserver
-1. Then go to deploy server and cd to a project root
+1. Then go to deploy server
 
         $ vagrant ssh deploy
-        vagrant@deploy:~$ cd /vagrant/
-1. Now, from deploy machine, start version build
+        vagrant@deploy:/vagrant$
+1. Now, from deploy machine, start version build and install
 
-        $ vagrant@deploy:/vagrant$ make local_build
-At the end, you will get version timestamp, like this
+        $ vagrant@deploy:/vagrant$ depl buildinst
+At the end, you will get a message like this
 
-        "msg": "Finished building version 2015.09.15.20.56"
-1. After that, you can install version:
-
-        make install version=2015.09.15.20.56
+        "msg": "Version 2015.09.15.20.56 is successfully installed"
 1. When version is installed, go to `http://2015.09.15.20.56.app1.foo` and see
 `Hello from base domain` or to `http://2015.09.15.20.56.foo.app1.foo/` and see
 `Hello from foo`

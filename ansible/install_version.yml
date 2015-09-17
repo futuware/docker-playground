@@ -52,3 +52,5 @@
     - name: Reload nginx
       service: name=nginx state=reloaded
       sudo: true
+
+    - debug: msg="Version {{ version }} is successfully installed"

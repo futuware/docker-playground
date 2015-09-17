@@ -2,7 +2,8 @@
 - hosts: deploy
 
   vars:
-    workdir: /opt/futurico/deploy
+    # workdir: /opt/futurico/deploy
+    workdir: /vagrant
     deploy_repo: https://github.com/futuware/kapellmeister.git
 
   roles:
@@ -33,3 +34,13 @@
 
 #    - name: Ensure deploy code is present and up-to-date
 #      git: repo={{ deploy_repo }} dest={{ workdir }} update=true
+
+    - name: Install depl util
+      shell: python setup.py develop chdir={{ workdir }}/depl
+      sudo: true
+
+    - name: Ensure bash config is included
+      lineinfile: dest=~/.bashrc line="if [ -f ~/.bashrc-local ]; then source ~/.bashrc-local; fi"
+
+    - name: Setup shell goodies
+      template: src=templates/bashrc-local.j2 dest=~/.bashrc-local

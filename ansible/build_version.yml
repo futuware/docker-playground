@@ -11,8 +11,8 @@
 #    - name: Update code
 #      git: repo={{ repo_url }} dest={{ workdir }} force=true version={{ repo_branch }}
 
-    - set_fact:
-        version: "{{ lookup('pipe', 'date +%Y.%m.%d.%H.%M') }}"
+#    - set_fact:
+#        version: "{{ lookup('pipe', 'date +%Y.%m.%d.%H.%M') }}"
 
     - debug: msg="Starting to build version {{ version }}"
 
