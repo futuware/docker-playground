@@ -43,7 +43,13 @@
       shell: docker load -i {{ remote_filename }}
 
     - name: Run image
-      shell: docker run -d -t -v {{ remote_sockets_dir }}:/run -v {{ remote_logs_dir }}:/logs -i {{ version }}
+      docker:
+        name: app-{{ version }}
+        image: "{{ version }}"
+        state: started
+        volumes:
+            - "{{ remote_sockets_dir }}:/run"
+            - "{{ remote_logs_dir }}:/logs"
 
     - name: Setup nginx config
       template: src=templates/nginx-version.conf.j2 dest=/etc/nginx/sites-enabled/{{ version }}.conf
